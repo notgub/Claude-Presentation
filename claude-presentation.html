@@ -284,6 +284,10 @@ body::before{
 .xp{gap:12px;}
 .xp h2{font-size:clamp(30px,4vw,52px);font-weight:800;letter-spacing:-.03em;line-height:1.05;}
 .xp .lead{font-size:16px;color:var(--text-dim);max-width:640px;line-height:1.5;}
+.xp-keys{display:flex;flex-direction:column;gap:6px;margin-top:2px;}
+.xp-keys div{font-size:15px;color:var(--text-dim);line-height:1.4;display:flex;gap:9px;align-items:baseline;}
+.xp-keys div::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--coral);flex-shrink:0;transform:translateY(-2px);}
+.xp-keys b{color:var(--coral-light);font-weight:700;}
 .xp-stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;width:100%;margin-top:4px;}
 .xp-stage svg{width:100%;max-width:800px;max-height:50vh;height:auto;}
 .xp-chip{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
@@ -755,7 +759,12 @@ body::before{
   <div class="eyebrow" data-a="1">Claude Ecosystem · 1 / 5</div>
   <h2 data-a="2">💬 Claude.ai</h2>
   <p class="lead" data-a="3">หน้าสนทนาหลัก — อ่านบริบทยาวได้ทั้งหมด แล้วตอบโดยคิดเป็นขั้นตอน</p>
-  <div class="xp-stage" data-a="4">
+  <div class="xp-keys" data-a="4">
+    <div><b>Context ยาว</b> — อ่านเอกสารทั้งชุดได้ในครั้งเดียว ไม่ต้องตัดแบ่ง</div>
+    <div><b>Reasoning</b> — ตอบโดยคิดเป็นขั้นตอน ไม่ใช่เดาสั้น ๆ</div>
+    <div><b>ถามต่อได้</b> — เจาะลึกต่อเนื่องในบทสนทนาเดียว</div>
+  </div>
+  <div class="xp-stage" data-a="5">
     <svg viewBox="0 0 720 320" fill="none" xmlns="http://www.w3.org/2000/svg">
       <line x1="212" y1="110" x2="300" y2="135" stroke="#D97757" stroke-width="2" pathLength="1" class="draw" style="transition-delay:.5s"/>
       <line x1="420" y1="135" x2="508" y2="110" stroke="#6DBF8A" stroke-width="2" pathLength="1" class="draw" style="transition-delay:1s"/>
@@ -790,7 +799,12 @@ body::before{
   <div class="eyebrow" data-a="1">Claude Ecosystem · 2 / 5</div>
   <h2 data-a="2">📁 Projects</h2>
   <p class="lead" data-a="3">เก็บความรู้ของงานไว้ถาวร — ทุกการสนทนาใช้บริบทชุดเดียวกัน</p>
-  <div class="xp-stage" data-a="4">
+  <div class="xp-keys" data-a="4">
+    <div><b>Memory ถาวร</b> — จำความรู้ของงานข้ามทุก session</div>
+    <div><b>ไม่ต้อง paste ซ้ำ</b> — อัปโหลดเอกสารครั้งเดียวใช้ได้ตลอด</div>
+    <div><b>บริบทเดียวกัน</b> — ทุกการสนทนาดึงความรู้ชุดเดียว</div>
+  </div>
+  <div class="xp-stage" data-a="5">
     <svg viewBox="0 0 720 320" fill="none" xmlns="http://www.w3.org/2000/svg">
       <line x1="360" y1="160" x2="175" y2="80" stroke="#D97757" stroke-width="2" pathLength="1" class="draw" style="transition-delay:.7s"/>
       <line x1="360" y1="160" x2="175" y2="240" stroke="#D97757" stroke-width="2" pathLength="1" class="draw" style="transition-delay:.85s"/>
@@ -828,7 +842,12 @@ body::before{
   <div class="eyebrow" data-a="1">Claude Ecosystem · 3 / 5</div>
   <h2 data-a="2">✦ Artifacts</h2>
   <p class="lead" data-a="3">คุยแล้วได้ชิ้นงานที่ใช้งานได้จริง — สั่งแก้แล้วอัปเดตทันที</p>
-  <div class="xp-stage" data-a="4">
+  <div class="xp-keys" data-a="4">
+    <div><b>ชิ้นงานจริง</b> — กราฟ แดชบอร์ด ไดอะแกรม ไม่ใช่แค่ข้อความ</div>
+    <div><b>แก้สดทันที</b> — สั่งปรับแล้วอัปเดตในหน้าเดียว</div>
+    <div><b>ส่งต่อได้</b> — export เป็น HTML ไปใช้งานต่อ</div>
+  </div>
+  <div class="xp-stage" data-a="5">
     <svg viewBox="0 0 720 320" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="56" y="40" width="608" height="240" rx="16" fill="#1d1a16" stroke="#3a3531" class="fade" style="transition-delay:.1s"/>
       <line x1="340" y1="40" x2="340" y2="280" stroke="#3a3531" stroke-width="1" class="fade" style="transition-delay:.2s"/>
@@ -862,7 +881,12 @@ body::before{
   <div class="eyebrow" data-a="1">Claude Ecosystem · 4 / 5</div>
   <h2 data-a="2">⌨️ Claude Code</h2>
   <p class="lead" data-a="3">Coding agent ใน terminal — วนทำงานเอง อ่าน แก้ไข แล้วรันเทสต์</p>
-  <div class="xp-stage" data-a="4">
+  <div class="xp-keys" data-a="4">
+    <div><b>Agent ใน terminal</b> — สั่งงานแล้วลงมือทำเอง</div>
+    <div><b>วนทำงานเอง</b> — อ่าน → แก้ไข → รันเทสต์ จนผ่าน</div>
+    <div><b>สำหรับสาย Dev</b> — ทำงานกับ codebase จริงได้</div>
+  </div>
+  <div class="xp-stage" data-a="5">
     <svg viewBox="0 0 720 320" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g class="fade" style="transition-delay:.1s">
         <rect x="120" y="28" width="480" height="118" rx="12" fill="#16140f" stroke="#3a3531"/>
@@ -900,7 +924,12 @@ body::before{
   <div class="eyebrow" data-a="1">Claude Ecosystem · 5 / 5</div>
   <h2 data-a="2">🖥️ Cowork</h2>
   <p class="lead" data-a="3">ทำงานบนเครื่องโดยตรง — อ่านไฟล์จริงหลายชนิด แล้วสร้างไฟล์ผลลัพธ์ให้</p>
-  <div class="xp-stage" data-a="4">
+  <div class="xp-keys" data-a="4">
+    <div><b>ทำงานบนเครื่อง</b> — เข้าถึงไฟล์ในโฟลเดอร์โดยตรง</div>
+    <div><b>อ่านได้หลายชนิด</b> — Word, Excel, PDF, Markdown</div>
+    <div><b>สร้างไฟล์ผลลัพธ์</b> — สังเคราะห์แล้วเขียนไฟล์ใหม่ให้</div>
+  </div>
+  <div class="xp-stage" data-a="5">
     <svg viewBox="0 0 720 320" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g class="pop" style="transition-delay:.2s">
         <rect x="48" y="84" width="190" height="150" rx="14" fill="#231F1B" stroke="#3a3531"/>
