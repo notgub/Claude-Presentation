@@ -380,6 +380,20 @@ body::before{
 .demo-out strong{color:var(--text);}
 
 /* ════════════════════════════════════════
+   SLIDE — SCENARIO CONTEXT (Split Bill)
+════════════════════════════════════════ */
+#sscenario{gap:18px;}
+#sscenario h2{font-size:clamp(30px,3.8vw,50px);font-weight:800;letter-spacing:-.03em;line-height:1.1;}
+#sscenario h2 .hi{color:var(--coral);}
+.scn-lead{font-size:17px;color:var(--text-dim);line-height:1.6;max-width:860px;}
+.scn-stats{display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;}
+.scn-stat{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 18px;min-width:96px;}
+.scn-stat .v{font-size:24px;font-weight:800;color:var(--coral-light);line-height:1.1;}
+.scn-stat .l{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.scn-stat.warn{border-color:var(--border-warm);}
+.scn-stat.warn .v{color:#E8997A;}
+
+/* ════════════════════════════════════════
    SLIDE 5 — LEVEL 1: Claude.ai
 ════════════════════════════════════════ */
 #s5{gap:26px;}
@@ -664,7 +678,7 @@ body::before{
 <div class="dot" style="width:6px;height:6px;top:80%;left:60%;animation-duration:6.5s;animation-delay:1.5s;"></div>
 
 <div id="progress"></div>
-<div id="counter"><em id="cur">1</em> / 16</div>
+<div id="counter"><em id="cur">1</em> / 17</div>
 <button class="nav" id="prev">←</button>
 <button class="nav" id="next">→</button>
 
@@ -960,6 +974,25 @@ body::before{
       <circle r="4.5" fill="#D97757"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1s" path="M238 135 L318 155"/></circle>
       <circle r="4.5" fill="#D97757"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1.6s" path="M238 183 L318 160"/></circle>
     </svg>
+  </div>
+</div>
+
+<!-- ══ SLIDE — SCENARIO CONTEXT (Split Bill) ══ -->
+<div class="slide" id="sscenario"
+  data-notes="ทำให้ผู้ฟังเข้าใจเคสที่จะใช้ตลอด demo ตรงกันตั้งแต่แรก — Split Bill คือฟีเจอร์หารบิลในแอป e-wallet เพิ่งจบ beta ผลดีเกือบทุกด้านแต่มี 1 บั๊กสำคัญ พรุ่งนี้ทีมจะขออนุมัติเปิดใช้งานจริง + งบการตลาด เน้นว่าทั้ง 3 ระดับของ demo อ้างอิงเคสนี้เคสเดียว">
+  <div class="eyebrow" data-a="1">บริบทก่อนเริ่ม Demo</div>
+  <h2 data-a="2">ฟีเจอร์ <span class="hi">Split Bill</span> — หารบิลกับเพื่อนในแอป</h2>
+  <p class="scn-lead" data-a="3">ฟีเจอร์ใหม่ของแอป e-wallet ที่ให้ผู้ใช้หารค่าใช้จ่ายกับเพื่อนได้ในแอปโดยตรง — สร้างบิล ระบุคนร่วมจ่าย แล้วระบบส่งคำขอเก็บเงินและทวงให้อัตโนมัติ ตอนนี้เพิ่งจบการทดลองใช้กับผู้ใช้กลุ่มแรก ผลตอบรับดีเกินเป้าเกือบทุกด้าน</p>
+  <div class="scn-stats" data-a="4">
+    <div class="scn-stat"><div class="v">2,400</div><div class="l">ผู้ทดลอง beta</div></div>
+    <div class="scn-stat"><div class="v">38%</div><div class="l">adoption</div></div>
+    <div class="scn-stat"><div class="v">52</div><div class="l">NPS</div></div>
+    <div class="scn-stat"><div class="v">~90%</div><div class="l">QA ผ่าน</div></div>
+    <div class="scn-stat warn"><div class="v">1</div><div class="l">critical bug คงค้าง</div></div>
+  </div>
+  <div class="scenario-box" data-a="5">
+    <div class="sc-icon">🎯</div>
+    <p><strong>สิ่งที่กำลังจะเกิดขึ้น:</strong> พรุ่งนี้ทีมเข้าประชุมผู้บริหารเพื่อขออนุมัติ <strong>เปิดใช้งานจริง (go-live) พร้อมงบการตลาด</strong> โดยเสนอเปิดแบบค่อยเป็นค่อยไป เริ่มที่ผู้ใช้ 10% ก่อน เป้าเปิดจริง 1 ก.ค. 2026 — เคสนี้คือสิ่งที่ demo ทั้ง 3 ระดับจะใช้ร่วมกัน</p>
   </div>
 </div>
 
