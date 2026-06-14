@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude — AI ที่ทำงานได้จริง</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&display=swap" rel="stylesheet">
+<style>
+/* ─── Claude Brand Tokens ─── */
+:root {
+  --coral:       #D97757;
+  --coral-light: #E8997A;
+  --coral-dim:   rgba(217,119,87,0.18);
+  --coral-glow:  rgba(217,119,87,0.35);
+  --bg:          #1A1815;
+  --bg2:         #231F1B;
+  --bg3:         #2D2822;
+  --border:      rgba(255,255,255,0.08);
+  --border-warm: rgba(217,119,87,0.22);
+  --text:        #F5EFE6;
+  --text-dim:    #9C8F83;
+  --text-muted:  #5C524A;
+  --green:       #6DBF8A;
+  --blue:        #6BA3D6;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── Grain texture overlay ── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:1000;opacity:.5;
+}
+
+/* ── Progress bar ── */
+#progress{
+  position:fixed;top:0;left:0;height:2px;
+  background:linear-gradient(90deg,var(--coral),var(--coral-light),#F5C89A);
+  transition:width .5s cubic-bezier(.4,0,.2,1);
+  z-index:500;
+  box-shadow:0 0 16px var(--coral-glow);
+}
+
+/* ── Slide counter ── */
+#counter{
+  position:fixed;bottom:28px;right:36px;
+  font-size:11px;font-weight:500;letter-spacing:.1em;
+  color:var(--text-muted);z-index:500;
+}
+#counter em{color:var(--coral);font-style:normal;}
+
+/* ── Nav buttons ── */
+.nav{
+  position:fixed;top:50%;transform:translateY(-50%);
+  width:40px;height:40px;border-radius:50%;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);
+  color:var(--text-muted);font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:500;
+  transition:all .2s ease;
+}
+.nav:hover{background:var(--coral-dim);color:var(--coral);border-color:var(--border-warm);}
+#prev{left:18px;}
+#next{right:18px;}
+
+/* ── Slides container ── */
+#deck{position:relative;width:100vw;height:100vh;}
+
+.slide{
+  position:absolute;inset:0;
+  display:flex;align-items:stretch;justify-content:center;
+  flex-direction:column;
+  padding:56px 96px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .55s ease;
+}
+.slide.active{opacity:1;pointer-events:all;}
+
+/* ── Animated children ── */
+.slide [data-a]{
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .5s ease, transform .5s ease;
+}
+.slide.active [data-a]{opacity:1;transform:translateY(0);}
+.slide.active [data-a="1"]{transition-delay:.05s;}
+.slide.active [data-a="2"]{transition-delay:.15s;}
+.slide.active [data-a="3"]{transition-delay:.25s;}
+.slide.active [data-a="4"]{transition-delay:.35s;}
+.slide.active [data-a="5"]{transition-delay:.45s;}
+.slide.active [data-a="6"]{transition-delay:.55s;}
+.slide.active [data-a="7"]{transition-delay:.65s;}
+
+/* ── Shared atoms ── */
+.eyebrow{
+  font-size:11px;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--coral);
+  margin-bottom:20px;
+}
+.tag{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  padding:5px 14px;border-radius:100px;
+}
+.tag-coral{background:var(--coral-dim);color:var(--coral);border:1px solid var(--border-warm);}
+.tag-green{background:rgba(109,191,138,.12);color:var(--green);border:1px solid rgba(109,191,138,.25);}
+.tag-blue{background:rgba(107,163,214,.12);color:var(--blue);border:1px solid rgba(107,163,214,.25);}
+
+.card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:16px;padding:24px;
+}
+.glow-card{
+  background:var(--bg2);border:1px solid var(--border-warm);
+  border-radius:16px;padding:24px;
+  box-shadow:0 0 40px rgba(217,119,87,.06);
+}
+.prompt-block{
+  background:var(--bg3);border:1px solid var(--border);
+  border-left:2px solid var(--coral);
+  border-radius:0 8px 8px 0;
+  padding:12px 16px;
+  font-family:'SF Mono','Fira Code',monospace;
+  font-size:14px;line-height:1.7;
+  color:#C9A882;
+}
+.wow-strip{
+  background:var(--coral-dim);border:1px solid var(--border-warm);
+  border-radius:10px;padding:14px 18px;
+  font-size:15px;line-height:1.6;
+  color:var(--coral-light);
+  display:flex;gap:12px;align-items:flex-start;
+  border-left:3px solid var(--coral);
+}
+
+/* ── Level pill ── */
+.level-badge{
+  display:flex;gap:8px;align-items:center;
+  margin-bottom:24px;
+}
+.lv{
+  width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;letter-spacing:.04em;
+  flex-shrink:0;
+}
+.lv-on{background:var(--coral);color:#fff;}
+.lv-off{background:var(--bg3);color:var(--text-muted);font-weight:500;}
+.lv-line{height:1px;width:12px;background:var(--border);}
+
+/* ════════════════════════════════════════
+   SLIDE 1 — HERO
+════════════════════════════════════════ */
+#s1{text-align:center;align-items:center;justify-content:center;}
+
+/* Animated radial background */
+#s1::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 55% at 50% 44%,rgba(217,119,87,.10) 0%,transparent 70%);
+  animation:pulse 5s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes pulse{0%,100%{opacity:.7;transform:scale(1);}50%{opacity:1;transform:scale(1.04);}}
+
+/* Floating dots */
+.dot{
+  position:absolute;border-radius:50%;
+  background:var(--coral);opacity:.18;
+  animation:float linear infinite;
+}
+@keyframes float{
+  0%{transform:translateY(0) scale(1);}
+  50%{transform:translateY(-28px) scale(1.1);}
+  100%{transform:translateY(0) scale(1);}
+}
+
+#s1 h1{
+  font-size:clamp(62px,7.5vw,108px);
+  font-weight:800;letter-spacing:-.04em;line-height:1.02;
+  margin-bottom:24px;
+  position:relative;z-index:1;
+}
+#s1 h1 .hi{
+  background:linear-gradient(135deg,var(--coral) 0%,var(--coral-light) 50%,#F5C89A 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+#s1 .sub{
+  font-size:clamp(18px,2vw,24px);color:var(--text-dim);
+  line-height:1.65;max-width:540px;margin:0 auto 44px;
+  position:relative;z-index:1;
+}
+.pill-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;}
+.pill{
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:100px;padding:7px 18px;
+  font-size:12px;font-weight:500;color:var(--text-dim);
+  transition:all .25s ease;cursor:default;
+}
+.pill:hover,.pill.on{
+  background:var(--coral-dim);color:var(--coral-light);
+  border-color:var(--border-warm);
+}
+
+/* ════════════════════════════════════════
+   SLIDE 2 — COMPARE
+════════════════════════════════════════ */
+#s2{gap:36px;}
+#s2 h2{font-size:clamp(38px,4.5vw,62px);font-weight:800;letter-spacing:-.03em;line-height:1.1;}
+
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.compare-card{border-radius:18px;padding:28px 28px 24px;}
+.cc-them{background:var(--bg2);border:1px solid var(--border);opacity:.65;}
+.cc-us{background:rgba(217,119,87,.06);border:1px solid var(--border-warm);}
+.cc-brand{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin-bottom:14px;}
+.cc-them .cc-brand{color:var(--text-muted);}
+.cc-us .cc-brand{color:var(--coral);}
+.compare-card h3{font-size:22px;font-weight:700;margin-bottom:16px;}
+.compare-card ul{list-style:none;display:flex;flex-direction:column;gap:9px;}
+.compare-card li{font-size:15px;color:var(--text-dim);display:flex;gap:10px;line-height:1.5;}
+.cc-them li::before{content:'·';color:var(--text-muted);flex-shrink:0;}
+.cc-us li::before{content:'✓';color:var(--green);flex-shrink:0;font-weight:700;}
+
+/* animated underline on "ทำงาน" */
+.underline-anim{
+  position:relative;display:inline-block;
+}
+.underline-anim::after{
+  content:'';position:absolute;bottom:-3px;left:0;right:0;
+  height:2px;background:var(--coral);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .6s cubic-bezier(.4,0,.2,1) .7s;
+}
+.slide.active .underline-anim::after{transform:scaleX(1);}
+
+/* ════════════════════════════════════════
+   SLIDE 3 — ECOSYSTEM
+════════════════════════════════════════ */
+#s3{gap:32px;}
+#s3 h2{font-size:clamp(30px,3.5vw,48px);font-weight:800;letter-spacing:-.03em;}
+
+.eco-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+.eco-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;padding:22px 16px;
+  display:flex;flex-direction:column;gap:10px;
+  transition:all .25s ease;cursor:default;
+  position:relative;overflow:hidden;
+}
+.eco-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--coral-dim),transparent);
+  opacity:0;transition:opacity .25s ease;
+}
+.eco-card:hover{border-color:var(--border-warm);transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.3);}
+.eco-card:hover::before{opacity:1;}
+.eco-icon{font-size:26px;margin-bottom:2px;position:relative;z-index:1;}
+.eco-card h4{font-size:15px;font-weight:700;position:relative;z-index:1;}
+.eco-card p{font-size:13px;color:var(--text-muted);line-height:1.55;position:relative;z-index:1;}
+.eco-badge{
+  font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 8px;border-radius:4px;width:fit-content;margin-top:auto;
+  position:relative;z-index:1;
+}
+.b-all{background:rgba(109,191,138,.12);color:var(--green);}
+.b-dev{background:rgba(107,163,214,.12);color:var(--blue);}
+.b-key{background:var(--coral-dim);color:var(--coral);}
+
+/* ════════════════════════════════════════
+   SLIDE 4 — DEMO INTRO (Escalate Wow Map)
+════════════════════════════════════════ */
+#s4{gap:40px;}
+#s4 h2{font-size:clamp(36px,4.4vw,58px);font-weight:800;letter-spacing:-.03em;line-height:1.1;}
+
+.journey{display:flex;align-items:stretch;gap:0;}
+.journey-step{
+  flex:1;background:var(--bg2);border:1px solid var(--border);
+  padding:28px 22px;display:flex;flex-direction:column;gap:12px;
+  position:relative;transition:all .3s ease;
+}
+.journey-step:first-child{border-radius:14px 0 0 14px;}
+.journey-step:last-child{border-radius:0 14px 14px 0;}
+.journey-step:hover{background:rgba(217,119,87,.06);border-color:var(--border-warm);z-index:1;}
+.journey-arrow{
+  width:32px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-muted);font-size:14px;
+  background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  margin:0 -1px;z-index:2;
+}
+.js-num{
+  font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--coral);
+}
+.js-tool{font-size:18px;margin:4px 0;}
+.journey-step h4{font-size:16px;font-weight:700;}
+.journey-step p{font-size:14px;color:var(--text-muted);line-height:1.55;}
+.js-bar{
+  height:2px;border-radius:2px;margin-top:auto;
+  background:var(--border);overflow:hidden;
+}
+.js-bar-fill{
+  height:100%;background:var(--coral);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .7s cubic-bezier(.4,0,.2,1);
+}
+.slide.active .js-bar-fill{transform:scaleX(1);}
+#jb1{transition-delay:.6s;}
+#jb2{transition-delay:.8s;}
+#jb3{transition-delay:1s;}
+
+.scenario-box{
+  background:var(--bg2);border:1px solid var(--border-warm);
+  border-radius:12px;padding:18px 22px;
+  display:flex;gap:14px;align-items:flex-start;
+}
+.scenario-box .sc-icon{font-size:22px;flex-shrink:0;margin-top:1px;}
+.scenario-box p{font-size:14px;line-height:1.65;color:var(--text-dim);}
+.scenario-box strong{color:var(--text);}
+
+/* ════════════════════════════════════════
+   SLIDE 4B — LIVE DEMO PLAN
+════════════════════════════════════════ */
+#sdemo{gap:26px;}
+#sdemo h2{font-size:clamp(32px,4vw,52px);font-weight:800;letter-spacing:-.03em;line-height:1.1;}
+.demo-files{
+  display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;
+}
+.demo-file{
+  display:flex;align-items:center;gap:9px;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:10px 14px;font-size:13px;color:var(--text-dim);
+}
+.demo-file .ft{
+  font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:2px 7px;border-radius:4px;background:var(--coral-dim);color:var(--coral);
+}
+.demo-out{
+  display:flex;align-items:center;gap:10px;
+  font-size:14px;color:var(--text-dim);margin-top:16px;
+}
+.demo-out .arrow{color:var(--coral);font-weight:700;}
+.demo-out strong{color:var(--text);}
+
+/* ════════════════════════════════════════
+   SLIDE 5 — LEVEL 1: Claude.ai
+════════════════════════════════════════ */
+#s5{gap:26px;}
+#s5 h2{font-size:clamp(34px,4vw,54px);font-weight:800;letter-spacing:-.03em;line-height:1.1;}
+
+.chat-mockup{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;
+}
+.chat-topbar{
+  background:var(--bg3);border-bottom:1px solid var(--border);
+  padding:10px 16px;display:flex;align-items:center;gap:8px;
+}
+.chat-topbar .dot-r{width:10px;height:10px;border-radius:50%;background:#FF5F57;}
+.chat-topbar .dot-y{width:10px;height:10px;border-radius:50%;background:#FFBD2E;}
+.chat-topbar .dot-g{width:10px;height:10px;border-radius:50%;background:#28CA41;}
+.chat-url{flex:1;text-align:center;font-size:11px;color:var(--text-muted);}
+.chat-body{padding:16px 20px;display:flex;flex-direction:column;gap:10px;}
+.msg{max-width:82%;padding:10px 14px;border-radius:12px;font-size:15px;line-height:1.6;}
+.msg-user{
+  background:var(--coral-dim);border:1px solid var(--border-warm);
+  color:var(--text);align-self:flex-end;border-radius:12px 12px 2px 12px;
+}
+.msg-claude{
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--text-dim);align-self:flex-start;border-radius:12px 12px 12px 2px;
+}
+.msg-claude strong{color:var(--coral-light);}
+.typing{display:flex;gap:4px;align-items:center;padding:4px 0;}
+.typing span{
+  width:6px;height:6px;border-radius:50%;background:var(--text-muted);
+  animation:blink 1.2s ease-in-out infinite;
+}
+.typing span:nth-child(2){animation-delay:.2s;}
+.typing span:nth-child(3){animation-delay:.4s;}
+@keyframes blink{0%,80%,100%{opacity:.3;}40%{opacity:1;}}
+
+/* ════════════════════════════════════════
+   SLIDE 6 — LEVEL 2: Artifacts
+════════════════════════════════════════ */
+#s6{gap:26px;}
+#s6 h2{font-size:clamp(34px,4vw,54px);font-weight:800;letter-spacing:-.03em;line-height:1.1;}
+
+.artifact-mockup{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;
+  display:grid;grid-template-columns:1fr 1fr;
+}
+.art-left{
+  border-right:1px solid var(--border);
+  padding:16px 18px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.art-left .prompt-block{font-size:11.5px;}
+.art-right{
+  padding:16px;
+  display:flex;align-items:center;justify-content:center;
+  min-height:180px;
+}
+
+/* SVG mind map inside artifact */
+.mindmap-svg{width:100%;max-width:280px;}
+
+/* Glow on center node */
+.center-node{
+  animation:node-pulse 2.5s ease-in-out infinite;
+}
+@keyframes node-pulse{
+  0%,100%{filter:drop-shadow(0 0 6px rgba(217,119,87,.5));}
+  50%{filter:drop-shadow(0 0 14px rgba(217,119,87,.9));}
+}
+
+/* Animated lines drawing */
+.mind-line{
+  stroke-dasharray:120;
+  stroke-dashoffset:120;
+  transition:stroke-dashoffset .8s ease;
+}
+.slide.active .mind-line{stroke-dashoffset:0;}
+.slide.active .mind-line:nth-child(1){transition-delay:.6s;}
+.slide.active .mind-line:nth-child(2){transition-delay:.75s;}
+.slide.active .mind-line:nth-child(3){transition-delay:.9s;}
+.slide.active .mind-line:nth-child(4){transition-delay:1.05s;}
+.slide.active .mind-line:nth-child(5){transition-delay:1.2s;}
+
+/* ════════════════════════════════════════
+   SLIDE 7 — LEVEL 3: Cowork
+════════════════════════════════════════ */
+#s7{gap:36px;}
+#s7::after{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 60% 35%,rgba(217,119,87,.13) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 30% at 20% 70%,rgba(217,119,87,.06) 0%,transparent 50%);
+  pointer-events:none;animation:pulse 6s ease-in-out infinite;
+}
+
+#s7 h2{font-size:clamp(40px,5.2vw,72px);font-weight:800;letter-spacing:-.04em;line-height:1.05;}
+#s7 h2 .hi{
+  background:linear-gradient(135deg,var(--coral),var(--coral-light));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+
+.cowork-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.cowork-step{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;padding:22px 18px;
+  position:relative;overflow:hidden;
+  transition:all .3s ease;
+}
+.cowork-step::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--coral),var(--coral-light));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .6s ease;
+}
+.slide.active .cowork-step:nth-child(1)::before{transform:scaleX(1);transition-delay:.6s;}
+.slide.active .cowork-step:nth-child(2)::before{transform:scaleX(1);transition-delay:.8s;}
+.slide.active .cowork-step:nth-child(3)::before{transform:scaleX(1);transition-delay:1s;}
+.cowork-step:hover{border-color:var(--border-warm);transform:translateY(-2px);}
+.cs-icon{font-size:28px;margin-bottom:10px;}
+.cs-num{
+  font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--coral);margin-bottom:6px;
+}
+.cowork-step h4{font-size:15px;font-weight:700;margin-bottom:6px;}
+.cowork-step p{font-size:14px;color:var(--text-muted);line-height:1.55;}
+
+.climax-quote{
+  background:rgba(217,119,87,.07);
+  border:1px solid var(--border-warm);
+  border-radius:14px;padding:20px 26px;
+  font-size:21px;font-weight:600;font-style:italic;
+  color:var(--text);line-height:1.55;text-align:center;
+  position:relative;z-index:1;
+}
+.climax-stat{
+  display:flex;gap:32px;justify-content:center;
+  position:relative;z-index:1;
+}
+.stat-item{text-align:center;}
+.stat-num{
+  font-size:36px;font-weight:800;letter-spacing:-.03em;
+  color:var(--coral);line-height:1;
+}
+.stat-label{font-size:11px;color:var(--text-muted);margin-top:4px;}
+
+/* ════════════════════════════════════════
+   SLIDE 8 — CLOSE THE LOOP
+════════════════════════════════════════ */
+#s8{gap:40px;align-items:center;text-align:center;}
+#s8 h2{font-size:clamp(38px,4.5vw,66px);font-weight:800;letter-spacing:-.04em;line-height:1.05;}
+
+.loop-box{
+  background:var(--bg2);border:1px solid var(--border-warm);
+  border-radius:18px;padding:32px 40px;
+  width:100%;max-width:640px;
+  position:relative;overflow:hidden;
+}
+.loop-box::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(217,119,87,.1),transparent 60%);
+  pointer-events:none;
+}
+.loop-box .q{
+  font-size:22px;font-weight:700;line-height:1.5;
+  color:var(--text);margin-bottom:16px;
+}
+.loop-box .q span{color:var(--coral);}
+.loop-box .a{font-size:14px;color:var(--text-muted);line-height:1.7;}
+
+.answer-reveal{
+  display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;justify-content:center;
+}
+.answer-tag{
+  background:var(--coral-dim);border:1px solid var(--border-warm);
+  border-radius:100px;padding:7px 18px;
+  font-size:13px;font-weight:500;color:var(--coral-light);
+  opacity:0;transform:scale(.9);
+  transition:all .4s ease;
+}
+.slide.active .answer-tag{opacity:1;transform:scale(1);}
+.slide.active .answer-tag:nth-child(1){transition-delay:.7s;}
+.slide.active .answer-tag:nth-child(2){transition-delay:.9s;}
+.slide.active .answer-tag:nth-child(3){transition-delay:1.1s;}
+.slide.active .answer-tag:nth-child(4){transition-delay:1.3s;}
+
+/* ════════════════════════════════════════
+   SLIDE — FABLE 5 (BONUS)
+════════════════════════════════════════ */
+#sfable{gap:20px;}
+#sfable h2{font-size:clamp(30px,3.6vw,48px);font-weight:800;letter-spacing:-.03em;line-height:1.12;}
+#sfable h2 .hi{background:linear-gradient(135deg,var(--coral),var(--coral-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#sfable .sub{font-size:15px;color:var(--text-dim);line-height:1.6;max-width:820px;}
+.fable-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.fable-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 16px;display:flex;flex-direction:column;gap:7px;transition:all .25s ease;}
+.fable-card:hover{border-color:var(--border-warm);transform:translateY(-2px);}
+.fable-card .fc-icon{font-size:22px;}
+.fable-card h4{font-size:14px;font-weight:700;}
+.fable-card p{font-size:12.5px;color:var(--text-muted);line-height:1.5;}
+.fable-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.fable-meta .card{padding:14px 16px;}
+.fable-meta .ml{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--coral);margin-bottom:5px;}
+.fable-meta .mv{font-size:13px;color:var(--text-dim);line-height:1.5;}
+.fable-meta .mv strong{color:var(--text);font-weight:700;}
+.caveat-strip{background:rgba(107,163,214,.08);border:1px solid rgba(107,163,214,.28);border-left:3px solid var(--blue);border-radius:10px;padding:13px 18px;font-size:13.5px;line-height:1.6;color:var(--text-dim);}
+.caveat-strip strong{color:var(--blue);}
+
+/* ════════════════════════════════════════
+   SLIDE 9 — CTA
+════════════════════════════════════════ */
+#s9{gap:36px;align-items:center;text-align:center;}
+#s9 h2{font-size:clamp(42px,5.2vw,72px);font-weight:800;letter-spacing:-.04em;line-height:1.05;}
+#s9 h2 .hi{color:var(--coral);}
+
+.cta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;width:100%;text-align:left;}
+.cta-card{border-radius:16px;padding:26px 22px;display:flex;flex-direction:column;gap:12px;}
+.cta-c1{background:rgba(109,191,138,.07);border:1px solid rgba(109,191,138,.2);}
+.cta-c2{background:var(--coral-dim);border:1px solid var(--border-warm);}
+.cta-c3{background:rgba(107,163,214,.07);border:1px solid rgba(107,163,214,.2);}
+.cta-role{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;}
+.cta-c1 .cta-role{color:var(--green);}
+.cta-c2 .cta-role{color:var(--coral);}
+.cta-c3 .cta-role{color:var(--blue);}
+.cta-card h3{font-size:17px;font-weight:700;line-height:1.3;}
+.cta-card p{font-size:14px;color:var(--text-muted);line-height:1.6;}
+.cta-action{
+  font-size:12px;font-weight:600;
+  font-family:'SF Mono','Fira Code',monospace;
+  background:var(--bg3);border-radius:6px;
+  padding:7px 12px;
+  color:var(--coral-light);margin-top:auto;
+}
+
+.url-display{
+  font-size:32px;font-weight:800;letter-spacing:-.02em;
+  color:var(--coral);
+  position:relative;display:inline-block;
+}
+.url-display::after{
+  content:'';position:absolute;bottom:-4px;left:0;right:0;
+  height:2px;background:var(--coral);opacity:.4;border-radius:2px;
+}
+.url-sub{font-size:13px;color:var(--text-muted);margin-top:10px;}
+
+/* ── Speaker notes ── */
+#notes{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(15,13,11,.96);border-top:1px solid var(--border);
+  padding:14px 96px;font-size:13px;color:var(--text-dim);line-height:1.65;
+  max-height:140px;overflow-y:auto;
+  display:none;z-index:600;backdrop-filter:blur(16px);
+}
+#notes.show{display:block;}
+#notes .nlabel{
+  font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--coral);margin-bottom:8px;display:block;
+}
+
+/* ── Keyboard hint ── */
+#kbhint{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  display:flex;gap:20px;align-items:center;
+  font-size:11px;color:var(--text-muted);z-index:500;
+  transition:opacity .3s ease;
+}
+#kbhint.fade{opacity:0;}
+.kb{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:5px;padding:2px 8px;font-size:10px;
+  display:inline-block;
+}
+</style>
+</head>
+<body>
+
+<!-- Floating dots for hero -->
+<div class="dot" style="width:5px;height:5px;top:20%;left:15%;animation-duration:6s;animation-delay:0s;"></div>
+<div class="dot" style="width:3px;height:3px;top:35%;left:78%;animation-duration:8s;animation-delay:1s;"></div>
+<div class="dot" style="width:4px;height:4px;top:65%;left:25%;animation-duration:7s;animation-delay:2s;"></div>
+<div class="dot" style="width:3px;height:3px;top:55%;left:85%;animation-duration:9s;animation-delay:.5s;"></div>
+<div class="dot" style="width:6px;height:6px;top:80%;left:60%;animation-duration:6.5s;animation-delay:1.5s;"></div>
+
+<div id="progress"></div>
+<div id="counter"><em id="cur">1</em> / 11</div>
+<button class="nav" id="prev">←</button>
+<button class="nav" id="next">→</button>
+
+<div id="deck">
+
+<!-- ══ SLIDE 1 — HERO ══ -->
+<div class="slide active" id="s1"
+  data-notes="บรรยายทางเดียว (อัดวิดีโอ) — เปิดตัวและวางกรอบว่า 60 นาทีนี้จะได้เห็นอะไร ยกตัวอย่างงานซ้ำ ๆ ที่ใช้เวลามากในแต่ละวัน เช่น สรุปประชุม เขียนอีเมล อ่านเอกสารหลายไฟล์ เก็บประเด็นนี้ไว้ไปสรุปที่สไลด์ 9 ไม่ต้องรอคำตอบจากผู้ฟัง">
+  <div class="eyebrow" data-a="1">Anthropic · Claude</div>
+  <h1 data-a="2"><span class="hi">Claude AI</span></h1>
+  <p class="sub" data-a="3">ทำความรู้จัก Claude และ Cowork — ตั้งแต่การสนทนา ไปจนถึงการทำงานกับไฟล์บนเครื่อง</p>
+  <div class="pill-row" data-a="4">
+    <div class="pill on">Claude.ai</div>
+    <div class="pill on">Artifacts</div>
+    <div class="pill on">Cowork</div>
+    <div class="pill">60 นาที</div>
+    <div class="pill">Live Demo</div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 2 — COMPARE ══ -->
+<div class="slide" id="s2"
+  data-notes="ไม่จำเป็นต้องเปรียบเทียบเชิงลบกับเครื่องมืออื่น เน้นว่า Claude ออกแบบมาเพื่อเป้าหมายที่ต่างกัน คือจากการตอบคำถาม สู่การลงมือทำงาน">
+  <div class="eyebrow" data-a="1">เปิดประเด็น</div>
+  <h2 data-a="2">Claude <span class="underline-anim">ต่างจาก</span><br>เครื่องมือ AI ทั่วไปอย่างไร?</h2>
+  <div class="compare-grid" data-a="3">
+    <div class="compare-card cc-them">
+      <div class="cc-brand">เครื่องมือ AI ทั่วไป</div>
+      <h3>ออกแบบเพื่อ<br>การตอบคำถาม</h3>
+      <ul>
+        <li>การสนทนาและถาม-ตอบที่ดี</li>
+        <li>สร้างโค้ดทั่วไป</li>
+        <li>ข้อจำกัดด้าน context — ต้องป้อนข้อมูลทีละส่วน</li>
+        <li>ผลลัพธ์อยู่ในรูปข้อความ</li>
+      </ul>
+    </div>
+    <div class="compare-card cc-us">
+      <div class="cc-brand">Claude</div>
+      <h3>ออกแบบเพื่อ<br>การลงมือทำงาน</h3>
+      <ul>
+        <li>รองรับ context ขนาดใหญ่ — อ่านเอกสารทั้งชุดได้</li>
+        <li>Artifacts — ชิ้นงาน interactive แก้ไขได้ทันที</li>
+        <li>Cowork — ทำงานบนเครื่อง desktop ได้โดยตรง</li>
+        <li>ทำงานเป็นลำดับขั้นและสร้างผลลัพธ์ที่เป็นไฟล์</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 3 — ECOSYSTEM ══ -->
+<div class="slide" id="s3"
+  data-notes="อธิบายผ่านๆ 7 นาที — ยังไม่ต้องลงลึก แค่ให้เห็น landscape เดี๋ยวจะ demo ทีละตัว">
+  <div class="eyebrow" data-a="1">Claude Ecosystem</div>
+  <h2 data-a="2">5 เครื่องมือที่ทำงานด้วยกัน</h2>
+  <div class="eco-grid" data-a="3">
+    <div class="eco-card">
+      <div class="eco-icon">💬</div>
+      <h4>Claude.ai</h4>
+      <p>Chat ที่ reasoning ดีกว่า context ยาวกว่า</p>
+      <div class="eco-badge b-all">ทุกคน</div>
+    </div>
+    <div class="eco-card">
+      <div class="eco-icon">📁</div>
+      <h4>Projects</h4>
+      <p>จำ context ถาวร ไม่ต้อง paste ซ้ำ</p>
+      <div class="eco-badge b-all">ทุกคน</div>
+    </div>
+    <div class="eco-card">
+      <div class="eco-icon">✦</div>
+      <h4>Artifacts</h4>
+      <p>ชิ้นงาน interactive แก้ไขได้ใน browser</p>
+      <div class="eco-badge b-key">⭐ Demo</div>
+    </div>
+    <div class="eco-card">
+      <div class="eco-icon">⌨️</div>
+      <h4>Claude Code</h4>
+      <p>Coding agent ใน terminal ทำงานได้จริง</p>
+      <div class="eco-badge b-dev">Dev</div>
+    </div>
+    <div class="eco-card">
+      <div class="eco-icon">🖥️</div>
+      <h4>Cowork</h4>
+      <p>ทำงานบนเครื่อง desktop ได้โดยตรง</p>
+      <div class="eco-badge b-key">⭐ Demo</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 4 — DEMO MAP INTRO ══ -->
+<div class="slide" id="s4"
+  data-notes="ใช้สถานการณ์เดียวตลอด: 'เตรียมประชุมพรุ่งนี้เช้า' โดยสาธิตผ่าน 3 เครื่องมือที่แสดงความสามารถเพิ่มขึ้นเป็นลำดับ">
+  <div class="eyebrow" data-a="1">Live Demo</div>
+  <h2 data-a="2">สถานการณ์เดียว<br>3 ระดับ<span style="color:var(--coral)">ความสามารถ</span></h2>
+  <div class="scenario-box" data-a="3">
+    <div class="sc-icon">🎯</div>
+    <p><strong>สถานการณ์จำลอง:</strong> การเตรียมประชุมกับผู้มีส่วนได้ส่วนเสียสำหรับโครงการใหม่ — ใช้สถานการณ์เดียวกันตลอดทั้งสามระดับ เพื่อให้เห็นความสามารถที่เพิ่มขึ้นในแต่ละขั้น</p>
+  </div>
+  <div class="journey" data-a="4">
+    <div class="journey-step">
+      <div class="js-num">Level 1</div>
+      <div class="js-tool">💬</div>
+      <h4>Claude.ai</h4>
+      <p>สนทนาเพื่อได้คำตอบที่ <em>คิดเผื่อ</em> สิ่งที่ต้องเตรียม</p>
+      <div class="js-bar"><div class="js-bar-fill" id="jb1" style="width:33%"></div></div>
+    </div>
+    <div class="journey-arrow">→</div>
+    <div class="journey-step">
+      <div class="js-num">Level 2</div>
+      <div class="js-tool">✦</div>
+      <h4>Artifacts</h4>
+      <p>ได้<em>ชิ้นงาน</em> ที่ interactive แก้ไขได้ทันที</p>
+      <div class="js-bar"><div class="js-bar-fill" id="jb2" style="width:66%"></div></div>
+    </div>
+    <div class="journey-arrow">→</div>
+    <div class="journey-step">
+      <div class="js-num">Level 3</div>
+      <div class="js-tool">🖥️</div>
+      <h4>Cowork</h4>
+      <p>ทำงาน<em>กับไฟล์บนเครื่อง</em> โดยตรง</p>
+      <div class="js-bar"><div class="js-bar-fill" id="jb3" style="width:100%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 4B — LIVE DEMO PLAN ══ -->
+<div class="slide" id="sdemo"
+  data-notes="อธิบายภาพรวมของการสาธิตก่อนเริ่มจริง ให้ผู้ฟังรู้ว่าจะได้เห็นอะไรในแต่ละขั้น โดยเฉพาะระดับที่ 3 ที่ Claude อ่านโฟลเดอร์เอกสารจริงและสรุปเป็นเอกสารหนึ่งหน้า">
+  <div class="eyebrow" data-a="1">ภาพรวมการสาธิต</div>
+  <h2 data-a="2">สิ่งที่จะสาธิตในวันนี้</h2>
+  <div class="cowork-steps" data-a="3">
+    <div class="cowork-step">
+      <div class="cs-num">ระดับที่ 1 · Claude.ai</div>
+      <div class="cs-icon">💬</div>
+      <h4>สนทนาเพื่อเตรียมงาน</h4>
+      <p>สอบถาม Claude เพื่อรวบรวมประเด็นและคำถามที่ควรเตรียมก่อนการประชุม</p>
+    </div>
+    <div class="cowork-step">
+      <div class="cs-num">ระดับที่ 2 · Artifacts</div>
+      <div class="cs-icon">✦</div>
+      <h4>สร้างชิ้นงานประกอบ</h4>
+      <p>ให้ Claude สร้างแผนผังผู้มีส่วนได้ส่วนเสียแบบ interactive และปรับแก้ได้ทันที</p>
+    </div>
+    <div class="cowork-step">
+      <div class="cs-num">ระดับที่ 3 · Cowork</div>
+      <div class="cs-icon">🖥️</div>
+      <h4>ทำงานกับไฟล์จริง</h4>
+      <p>ชี้ไปที่โฟลเดอร์เอกสารบนเครื่อง แล้วให้ Claude อ่านและสรุปให้</p>
+    </div>
+  </div>
+  <div class="glow-card" data-a="4">
+    <div class="tag tag-coral" style="margin-bottom:14px;">การสาธิต Cowork · ใช้โฟลเดอร์เอกสารจริง</div>
+    <p style="font-size:15px;line-height:1.65;color:var(--text-dim);">ในระดับที่ 3 จะใช้โฟลเดอร์โครงการตัวอย่าง (ฟีเจอร์ Split Bill ของแอป e-wallet) ที่มีเอกสารหลายรูปแบบ จากนั้นให้ Claude อ่านทั้งหมดและสรุปเป็นเอกสารสำหรับผู้บริหารหนึ่งหน้า</p>
+    <div class="demo-files">
+      <div class="demo-file"><span class="ft">Word</span> เอกสารข้อกำหนดผลิตภัณฑ์</div>
+      <div class="demo-file"><span class="ft">MD</span> บันทึกการประชุมทีม</div>
+      <div class="demo-file"><span class="ft">Excel</span> ผลการทดสอบ QA</div>
+      <div class="demo-file"><span class="ft">PDF</span> รายงานผลวิจัยผู้ใช้</div>
+    </div>
+    <div class="demo-out">
+      <span>4 ไฟล์ · 4 รูปแบบ</span><span class="arrow">→</span><strong>เอกสารสรุปสำหรับผู้บริหาร 1 หน้า</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 5 — LEVEL 1: Claude.ai ══ -->
+<div class="slide" id="s5"
+  data-notes="พิมพ์สดให้เห็นว่า Claude ถามกลับเพื่อเก็บบริบทก่อน ไม่ใช่แค่ตอบทันที — บรรยายประกอบไปด้วยว่าทำไมการถามกลับถึงสำคัญ">
+  <div class="level-badge" data-a="1">
+    <div class="lv lv-on">L1</div>
+    <div class="lv-line"></div>
+    <div class="lv lv-off">L2</div>
+    <div class="lv-line"></div>
+    <div class="lv lv-off">L3</div>
+    <div style="margin-left:10px;" class="tag tag-coral">Claude.ai</div>
+  </div>
+  <h2 data-a="2">สนทนาเพื่อได้คำตอบ<br>ที่<span style="color:var(--coral)"> คิดเผื่อ</span>ล่วงหน้า</h2>
+  <div class="chat-mockup" data-a="3">
+    <div class="chat-topbar">
+      <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+      <div class="chat-url">claude.ai</div>
+    </div>
+    <div class="chat-body">
+      <div class="msg msg-user">ผมมี meeting กับ stakeholder พรุ่งนี้เช้าเรื่อง project ใหม่ ช่วยเตรียมผมหน่อย — ควรรู้อะไร และควรถามอะไรบ้าง</div>
+      <div class="msg msg-claude">
+        ก่อนเตรียมให้ผมขอถามก่อนนะครับ:<br>
+        <strong>1.</strong> project นี้อยู่ในช่วงไหน — เพิ่งเริ่ม หรือ mid-execution?<br>
+        <strong>2.</strong> stakeholder คนนี้สนใจ outcome ด้านไหนเป็นพิเศษ?<br>
+        <strong>3.</strong> มี blocker หรือ risk ที่อยากหลีกเลี่ยงการพูดถึงไหม?
+      </div>
+    </div>
+  </div>
+  <div class="wow-strip" data-a="4">
+    <strong>ประเด็นสำคัญ:</strong>&nbsp;Claude ไม่เพียงตอบ แต่<em> ถามกลับเพื่อเก็บบริบท</em>ก่อน เช่นเดียวกับผู้ช่วยที่เตรียมงานให้
+  </div>
+</div>
+
+<!-- ══ SLIDE 6 — LEVEL 2: Artifacts ══ -->
+<div class="slide" id="s6"
+  data-notes="ต่อจาก Level 1 — ขอให้ Claude สร้าง mind map / diagram จาก context ที่คุยมา แล้วแก้ live ให้คนเห็น: 'เพิ่ม node risk ให้หน่อย' — มันอัปเดตทันที">
+  <div class="level-badge" data-a="1">
+    <div class="lv lv-off">L1</div>
+    <div class="lv-line"></div>
+    <div class="lv lv-on">L2</div>
+    <div class="lv-line"></div>
+    <div class="lv lv-off">L3</div>
+    <div style="margin-left:10px;" class="tag tag-coral">Artifacts</div>
+  </div>
+  <h2 data-a="2">"คุยแล้วได้<span style="color:var(--coral)"> ชิ้นงาน</span><br>ที่แก้ไขได้ทันที"</h2>
+  <div class="artifact-mockup" data-a="3">
+    <div class="art-left">
+      <div class="prompt-block">สร้าง mind map แสดง stakeholders<br>และความสัมพันธ์ในโปรเจกต์นี้<br>ทำเป็น interactive diagram<br>ที่คลิกดูรายละเอียดได้</div>
+      <div style="margin-top:8px;" class="prompt-block" style="border-left-color:var(--green);color:var(--green)">เพิ่ม node "Risk" และเชื่อมกับ<br>stakeholder ที่เกี่ยวข้อง</div>
+    </div>
+    <div class="art-right">
+      <svg class="mindmap-svg" viewBox="0 0 260 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Lines -->
+        <line class="mind-line" x1="130" y1="90" x2="50" y2="45" stroke="#D97757" stroke-width="1.5" opacity=".6"/>
+        <line class="mind-line" x1="130" y1="90" x2="210" y2="45" stroke="#D97757" stroke-width="1.5" opacity=".6"/>
+        <line class="mind-line" x1="130" y1="90" x2="50" y2="135" stroke="#D97757" stroke-width="1.5" opacity=".6"/>
+        <line class="mind-line" x1="130" y1="90" x2="210" y2="135" stroke="#D97757" stroke-width="1.5" opacity=".6"/>
+        <line class="mind-line" x1="130" y1="90" x2="130" y2="158" stroke="#6DBF8A" stroke-width="1.5" opacity=".7"/>
+        <!-- Center -->
+        <circle class="center-node" cx="130" cy="90" r="26" fill="#2D2822" stroke="#D97757" stroke-width="1.5"/>
+        <text x="130" y="87" text-anchor="middle" font-size="9" fill="#F5EFE6" font-family="Inter,sans-serif" font-weight="700">Meeting</text>
+        <text x="130" y="98" text-anchor="middle" font-size="9" fill="#F5EFE6" font-family="Inter,sans-serif" font-weight="700">Prep</text>
+        <!-- Nodes -->
+        <circle cx="50" cy="45" r="18" fill="#231F1B" stroke="#D97757" stroke-width="1" opacity=".8"/>
+        <text x="50" y="49" text-anchor="middle" font-size="8" fill="#9C8F83" font-family="Inter,sans-serif">CEO</text>
+        <circle cx="210" cy="45" r="18" fill="#231F1B" stroke="#D97757" stroke-width="1" opacity=".8"/>
+        <text x="210" y="49" text-anchor="middle" font-size="8" fill="#9C8F83" font-family="Inter,sans-serif">CTO</text>
+        <circle cx="50" cy="135" r="18" fill="#231F1B" stroke="#D97757" stroke-width="1" opacity=".8"/>
+        <text x="50" y="139" text-anchor="middle" font-size="8" fill="#9C8F83" font-family="Inter,sans-serif">PM</text>
+        <circle cx="210" cy="135" r="18" fill="#231F1B" stroke="#D97757" stroke-width="1" opacity=".8"/>
+        <text x="210" y="139" text-anchor="middle" font-size="8" fill="#9C8F83" font-family="Inter,sans-serif">Client</text>
+        <!-- Risk node (newly added - glows green) -->
+        <circle cx="130" cy="158" r="16" fill="#1A2A1E" stroke="#6DBF8A" stroke-width="1.5"/>
+        <text x="130" y="162" text-anchor="middle" font-size="8" fill="#6DBF8A" font-family="Inter,sans-serif" font-weight="600">Risk ✦</text>
+      </svg>
+    </div>
+  </div>
+  <div class="wow-strip" data-a="4">
+    <strong>ประเด็นสำคัญ:</strong>&nbsp;ผลลัพธ์ไม่ใช่เพียงข้อความ แต่เป็น<em> ชิ้นงาน interactive</em> ที่แก้ไขได้ในหน้าเดียว และ export เป็น HTML เพื่อส่งต่อให้ทีมได้
+  </div>
+</div>
+
+<!-- ══ SLIDE 7 — LEVEL 3: COWORK ══ -->
+<div class="slide" id="s7"
+  data-notes="ส่วนสำคัญที่สุดของการสาธิต ชี้ไปที่โฟลเดอร์จริงบนเครื่อง แล้วพิมพ์ prompt สด เว้นจังหวะให้ผู้ฟังเห็นผลลัพธ์ก่อนสรุปด้วยประโยคเรื่องเวลาที่ประหยัดได้">
+  <div class="level-badge" data-a="1">
+    <div class="lv lv-off">L1</div>
+    <div class="lv-line"></div>
+    <div class="lv lv-off">L2</div>
+    <div class="lv-line"></div>
+    <div class="lv lv-on">L3</div>
+    <div style="margin-left:10px;" class="tag tag-coral">Cowork</div>
+  </div>
+  <h2 data-a="2">เมื่อ Claude<br><span class="hi">ทำงานกับไฟล์</span><br>บนเครื่องได้โดยตรง</h2>
+  <div class="cowork-steps" data-a="3">
+    <div class="cowork-step">
+      <div class="cs-num">Step 1</div>
+      <div class="cs-icon">📂</div>
+      <h4>เข้าถึง folder จริง</h4>
+      <p>อ่านทุกไฟล์ในเครื่องโดยตรง ไม่ต้อง copy-paste ทีละอัน</p>
+    </div>
+    <div class="cowork-step">
+      <div class="cs-num">Step 2</div>
+      <div class="cs-icon">🧠</div>
+      <h4>Synthesize ทุกอัน</h4>
+      <p>อ่าน spec, notes, reports พร้อมกัน เชื่อมเนื้อหาที่สัมพันธ์กัน</p>
+    </div>
+    <div class="cowork-step">
+      <div class="cs-num">Step 3</div>
+      <div class="cs-icon">📄</div>
+      <h4>สร้างไฟล์จริง</h4>
+      <p>ผลลัพธ์เป็นไฟล์ใน folder เดิม ส่งได้เลย ไม่ต้องแตะอะไรอีก</p>
+    </div>
+  </div>
+  <div class="climax-quote" data-a="4">
+    "งานนี้ปกติใช้เวลาครึ่งวัน<br>เพิ่งเสร็จใน <strong style="color:var(--coral)">30 วินาที</strong> โดยที่ผมไม่ได้เปิดไฟล์สักอัน"
+  </div>
+</div>
+
+<!-- ══ SLIDE 8 — CLOSE THE LOOP ══ -->
+<div class="slide" id="s8"
+  data-notes="สรุปแบบบรรยายเอง (ไม่ถามผู้ฟัง) — ย้อนกลับไปที่งานซ้ำ ๆ ที่ยกตัวอย่างไว้ตอนเปิด แล้วชี้ว่าทั้งหมดนี้คือสิ่งที่เพิ่งสาธิตให้เห็นว่า Claude ทำร่วมกับเราได้ ตั้งแต่สรุปประชุม เขียนอีเมล อ่านเอกสาร ไปจนถึงทำรายงาน">
+  <div class="eyebrow" data-a="1">สรุป</div>
+  <h2 data-a="2">งานซ้ำ ๆ ที่<br><span style="color:var(--coral)">ใช้เวลาเกินจำเป็น</span><br>ส่วนใหญ่ Claude ช่วยได้</h2>
+  <div class="loop-box" data-a="3">
+    <div class="q">"สิ่งที่เพิ่งเห็น คือ<span style="color:var(--coral)">งานเดิม ๆ</span> ในแต่ละวัน"</div>
+    <div class="a">ตั้งแต่สรุปประชุม เขียนอีเมล อ่านเอกสารหลายไฟล์ ไปจนถึงทำรายงาน — งานที่เคยกินเวลาเหล่านี้ Claude ทำร่วมกับเราได้ทันที</div>
+    <div class="answer-reveal">
+      <div class="answer-tag">สรุปประชุม</div>
+      <div class="answer-tag">เขียนอีเมล</div>
+      <div class="answer-tag">อ่านเอกสาร</div>
+      <div class="answer-tag">สร้างรายงาน</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SLIDE — FABLE 5 (BONUS) ══ -->
+<div class="slide" id="sfable"
+  data-notes="สไลด์เสริม (ถ้ามีเวลาเหลือ) — Claude Fable 5 และ Mythos 5 เปิดตัว 9 มิ.ย. 2026 เป็นโมเดลระดับ 'Mythos-class' ที่อยู่เหนือระดับ Opus | Fable คือเวอร์ชันที่ใส่ safeguards ให้ปลอดภัยสำหรับการใช้งานทั่วไป ส่วน Mythos คือโมเดลเดียวกันที่ยกข้อจำกัดบางส่วนสำหรับพันธมิตรที่เชื่อถือได้ (เช่นผู้ป้องกันภัยไซเบอร์ใน Project Glasswing) | ข้อควรระวังสำคัญ: ระหว่างเตรียมสไลด์นี้ (12 มิ.ย. 2026) Anthropic ประกาศระงับการเข้าถึงทั้งสองโมเดลตามคำสั่งควบคุมการส่งออกของรัฐบาลสหรัฐฯ — ควรตรวจสอบสถานะล่าสุดก่อนนำเสนอ และเล่าในเชิง 'ทิศทางความสามารถของโมเดล' มากกว่าการชวนให้ใช้ทันที">
+  <div class="eyebrow" data-a="1">มองไปข้างหน้า · Bonus</div>
+  <h2 data-a="2">Claude <span class="hi">Fable 5</span> — โมเดลระดับ Mythos<br>สำหรับการใช้งานทั่วไป</h2>
+  <p class="sub" data-a="3">โมเดลที่ความสามารถสูงที่สุดเท่าที่ Anthropic เคยเปิดให้ใช้งานทั่วไป ทำคะแนนระดับ state-of-the-art ในเกือบทุก benchmark โดยยิ่งงานยาวและซับซ้อน ยิ่งทิ้งห่างโมเดลอื่น</p>
+  <div class="fable-grid" data-a="4">
+    <div class="fable-card">
+      <div class="fc-icon">🏆</div>
+      <h4>เก่งรอบด้าน</h4>
+      <p>นำในเกือบทุก benchmark ครอบคลุมงานวิศวกรรม ความรู้ การมองเห็น และงานวิจัย</p>
+    </div>
+    <div class="fable-card">
+      <div class="fc-icon">⌨️</div>
+      <h4>วิศวกรรมซอฟต์แวร์</h4>
+      <p>Stripe ระบุว่าย่นงานหลายเดือนเหลือไม่กี่วัน — migrate โค้ด 50 ล้านบรรทัดได้ใน 1 วัน</p>
+    </div>
+    <div class="fable-card">
+      <div class="fc-icon">👁️</div>
+      <h4>Vision &amp; Long-context</h4>
+      <p>ดีที่สุดด้านการมองเห็น และโฟกัสงานต่อเนื่องข้ามหลายล้าน token ด้วยการใช้ memory</p>
+    </div>
+    <div class="fable-card">
+      <div class="fc-icon">🧬</div>
+      <h4>งานวิทยาศาสตร์</h4>
+      <p>Mythos 5 เร่งการออกแบบยาราว 10 เท่า และตั้งสมมติฐานใหม่ที่นักวิจัยเลือกราว 80%</p>
+    </div>
+  </div>
+  <div class="fable-meta" data-a="5">
+    <div class="card">
+      <div class="ml">ราคา</div>
+      <div class="mv"><strong>$10 / $50</strong> ต่อล้าน token (เข้า/ออก) — น้อยกว่าครึ่งของ Mythos Preview</div>
+    </div>
+    <div class="card">
+      <div class="ml">ความปลอดภัย</div>
+      <div class="mv">คำขอบางหัวข้อ (ไซเบอร์ ชีว-เคมี) จะให้ <strong>Opus 4.8</strong> ตอบแทน เกิดขึ้น &lt; 5% ของ session</div>
+    </div>
+    <div class="card">
+      <div class="ml">Mythos 5</div>
+      <div class="mv">โมเดลเดียวกันที่ยกข้อจำกัดด้านไซเบอร์ สำหรับผู้ป้องกันภัย (Project Glasswing)</div>
+    </div>
+  </div>
+  <div class="caveat-strip" data-a="6">
+    <strong>หมายเหตุสำคัญ (ณ 14 มิ.ย. 2026):</strong> Anthropic ระงับการเข้าถึง Fable 5 และ Mythos 5 ชั่วคราว ตามคำสั่งควบคุมการส่งออกของรัฐบาลสหรัฐฯ — โปรดตรวจสอบสถานะล่าสุดจากหน้า News ของ Anthropic ก่อนนำเสนอ
+  </div>
+</div>
+
+<!-- ══ SLIDE 9 — CTA ══ -->
+<div class="slide" id="s9"
+  data-notes="ปิดท้ายแบบบรรยายเอง — สรุป 3 ก้าวที่ผู้ชมทำตามได้ทันที (เริ่มจาก Claude.ai, ลอง Artifacts, ลอง Cowork) และชี้ไปที่ handout prompt sheet ที่แนบไว้ให้">
+  <div class="eyebrow" data-a="1">เริ่มได้เลยวันนี้</div>
+  <h2 data-a="2">ก้าวแรก<br><span class="hi">ที่ทำได้ทันที</span></h2>
+  <div class="cta-grid" data-a="3">
+    <div class="cta-card cta-c1">
+      <div class="cta-role">🌱 ทุกคน</div>
+      <h3>เริ่มจาก Claude.ai</h3>
+      <p>เอางานที่ทำอยู่มาถามดูเลย ฟรี ไม่ต้อง credit card</p>
+      <div class="cta-action">→ claude.ai</div>
+    </div>
+    <div class="cta-card cta-c2">
+      <div class="cta-role">✦ ลอง Artifacts</div>
+      <h3>ขอให้สร้าง diagram หรือ dashboard</h3>
+      <p>จากข้อมูลที่มีอยู่ — ได้ชิ้นงาน interactive ทันที</p>
+      <div class="cta-action">→ "สร้าง mind map จาก..."</div>
+    </div>
+    <div class="cta-card cta-c3">
+      <div class="cta-role">🖥️ ลอง Cowork</div>
+      <h3>ให้อ่าน folder เอกสาร</h3>
+      <p>ที่มีอยู่แล้ว สร้าง summary — ไม่ต้อง copy-paste</p>
+      <div class="cta-action">→ ลง Cowork แล้วลองเลย</div>
+    </div>
+  </div>
+  <div data-a="4">
+    <div class="url-display">claude.ai</div>
+    <div class="url-sub">ฟรี · ไม่ต้อง credit card · เริ่มได้ใน 30 วินาที</div>
+  </div>
+</div>
+
+</div><!-- #deck -->
+
+<!-- Speaker notes -->
+<div id="notes">
+  <span class="nlabel">Speaker Notes</span>
+  <span id="notes-text"></span>
+</div>
+
+<!-- Keyboard hint -->
+<div id="kbhint">
+  <span><span class="kb">←</span><span class="kb">→</span> เปลี่ยน slide</span>
+  <span><span class="kb">N</span> notes</span>
+  <span><span class="kb">F</span> fullscreen</span>
+</div>
+
+<script>
+const slides = [...document.querySelectorAll('.slide')];
+const total = slides.length;
+let cur = 0;
+let notesOn = false;
+let hintTimer;
+
+const progress = document.getElementById('progress');
+const curEl = document.getElementById('cur');
+const notesPanel = document.getElementById('notes');
+const notesText = document.getElementById('notes-text');
+const kbhint = document.getElementById('kbhint');
+
+function goTo(n) {
+  if (n < 0 || n >= total) return;
+  slides[cur].classList.remove('active');
+  cur = n;
+  slides[cur].classList.add('active');
+  progress.style.width = ((cur + 1) / total * 100) + '%';
+  curEl.textContent = cur + 1;
+  notesText.textContent = slides[cur].dataset.notes || '';
+}
+
+document.getElementById('prev').onclick = () => goTo(cur - 1);
+document.getElementById('next').onclick = () => goTo(cur + 1);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goTo(cur + 1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(cur - 1); }
+  if (e.key === 'n' || e.key === 'N') {
+    notesOn = !notesOn;
+    notesPanel.classList.toggle('show', notesOn);
+    notesText.textContent = slides[cur].dataset.notes || '';
+  }
+  if (e.key === 'f' || e.key === 'F') {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+    else document.exitFullscreen();
+  }
+});
+
+// Touch / swipe
+let tx = 0;
+document.addEventListener('touchstart', e => tx = e.touches[0].clientX, {passive:true});
+document.addEventListener('touchend', e => {
+  const d = tx - e.changedTouches[0].clientX;
+  if (Math.abs(d) > 50) goTo(d > 0 ? cur + 1 : cur - 1);
+});
+
+// Auto-hide keyboard hint
+function showHint() {
+  kbhint.classList.remove('fade');
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => kbhint.classList.add('fade'), 3000);
+}
+document.addEventListener('mousemove', showHint);
+document.addEventListener('keydown', showHint);
+showHint();
+
+// Init progress
+progress.style.width = (1 / total * 100) + '%';
+</script>
+</body>
+</html>

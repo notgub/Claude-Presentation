@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude — Starter Prompts (Handout)</title>
+<style>
+  :root{
+    --ink:#1a1a2e; --blue:#1F4E79; --accent:#D97757; --soft:#f5f3ef; --line:#e3ddd3;
+    --green:#2E7D32;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Sarabun","Segoe UI",system-ui,-apple-system,sans-serif;color:var(--ink);
+       background:#faf9f6;line-height:1.55;padding:40px 16px}
+  .wrap{max-width:880px;margin:0 auto}
+  header{text-align:center;margin-bottom:8px}
+  .logo{display:inline-block;background:var(--accent);color:#fff;font-weight:700;
+        padding:4px 14px;border-radius:8px;font-size:14px;letter-spacing:.5px}
+  h1{font-size:30px;color:var(--blue);margin:14px 0 4px;font-weight:700}
+  .lede{color:#6b6457;font-size:16px;margin-bottom:28px;text-align:center}
+  .level{background:#fff;border:1px solid var(--line);border-radius:14px;
+         padding:22px 24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .tag{display:inline-block;font-size:13px;font-weight:700;color:#fff;
+       padding:3px 11px;border-radius:20px;margin-bottom:10px}
+  .l1{background:#3b82a6}.l2{background:#7c5cbf}.l3{background:var(--accent)}
+  .level h2{font-size:20px;color:var(--blue);margin-bottom:4px}
+  .level .desc{color:#6b6457;font-size:14px;margin-bottom:14px}
+  .prompt{background:var(--soft);border-left:4px solid var(--accent);
+          border-radius:8px;padding:12px 14px;margin:10px 0;position:relative;
+          font-size:15px;white-space:pre-wrap}
+  .prompt .lbl{display:block;font-size:12px;font-weight:700;color:var(--accent);
+               margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+  .tip{font-size:13.5px;color:var(--green);margin-top:10px}
+  .tip b{color:var(--green)}
+  .cta{background:linear-gradient(135deg,#1F4E79,#3b82a6);color:#fff;border-radius:14px;
+       padding:26px;text-align:center;margin-top:8px}
+  .cta h2{font-size:22px;margin-bottom:8px}
+  .cta p{font-size:15px;opacity:.95;margin-bottom:6px}
+  .cta a{color:#ffd9c9;font-weight:700}
+  .foot{text-align:center;color:#9b9384;font-size:12.5px;margin-top:26px}
+  ul{margin:6px 0 0 20px}li{font-size:14px;margin-bottom:3px}
+  @media print{body{background:#fff;padding:0}.level{box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="logo">✦ Claude</span>
+    <h1>เริ่มใช้ Claude วันนี้ — Starter Prompts</h1>
+    <p class="lede">เอกสารแจกผู้เข้าร่วม · ลองก๊อปปี้ prompt ไปวางใช้ได้เลย · ไต่ระดับจาก "คุย" ไปสู่ "ทำงานแทน"</p>
+  </header>
+
+  <div class="level">
+    <span class="tag l1">LEVEL 1 — Claude.ai · คุยแล้วได้คำตอบที่คิดมาแล้ว</span>
+    <h2>ให้ Claude ช่วยคิด ไม่ใช่แค่ตอบ</h2>
+    <p class="desc">เริ่มจากงานที่คุณทำอยู่จริง แล้วปล่อยให้ Claude ถามกลับ</p>
+    <div class="prompt"><span class="lbl">เตรียมประชุม</span>ผมมี meeting กับ stakeholder พรุ่งนี้เช้าเรื่อง project ใหม่
+ช่วยเตรียมผมหน่อย — ผมควรรู้อะไร และควรถามอะไรบ้าง</div>
+    <div class="prompt"><span class="lbl">สรุปให้สั้น</span>ช่วยสรุปอีเมลฉบับนี้เหลือ 3 bullet แล้วร่างคำตอบสั้น ๆ ให้ด้วย:
+[วางข้อความอีเมลตรงนี้]</div>
+    <div class="prompt"><span class="lbl">ช่วยตัดสินใจ</span>ผมกำลังเลือกระหว่างตัวเลือก A กับ B [อธิบายสั้น ๆ]
+ช่วยเปรียบเทียบข้อดีข้อเสีย และถามกลับถ้าต้องการข้อมูลเพิ่ม</div>
+    <p class="tip"><b>เคล็ดลับ:</b> ยิ่งให้บริบทเยอะ คำตอบยิ่งตรง — และถ้า Claude ถามกลับ ให้ตอบ มันจะคิดแทนได้ลึกขึ้น</p>
+  </div>
+
+  <div class="level">
+    <span class="tag l2">LEVEL 2 — Artifacts · คุยแล้วได้ชิ้นงานที่แก้ไขได้ทันที</span>
+    <h2>เปลี่ยนคำตอบเป็นชิ้นงาน interactive</h2>
+    <p class="desc">ขอให้ Claude สร้าง diagram, dashboard หรือเครื่องมือ แล้วแก้สด ๆ ในหน้าเดียว</p>
+    <div class="prompt"><span class="lbl">สร้าง diagram</span>สร้าง mind map แสดง stakeholders และความสัมพันธ์ในโปรเจกต์นี้
+ทำเป็น interactive diagram ที่คลิกดูรายละเอียดได้</div>
+    <div class="prompt"><span class="lbl">แก้ไขสด</span>เพิ่ม node "Risk" และเชื่อมกับ stakeholder ที่เกี่ยวข้อง</div>
+    <div class="prompt"><span class="lbl">ทำเครื่องมือ</span>สร้างเครื่องคำนวณ ROI แบบกรอกตัวเลขแล้วเห็นผลทันที
+ใส่กราฟเปรียบเทียบ 3 สถานการณ์</div>
+    <p class="tip"><b>เคล็ดลับ:</b> ผลลัพธ์ไม่ใช่แค่ข้อความ — เป็นชิ้นงานที่ export เป็น HTML ส่งทีมได้เลย</p>
+  </div>
+
+  <div class="level">
+    <span class="tag l3">LEVEL 3 — Cowork · ทำงานบนเครื่องคุณได้เลย</span>
+    <h2>ชี้ไปที่ folder แล้วให้ Claude ลงมือทำ</h2>
+    <p class="desc">Cowork อ่านไฟล์จริงในเครื่อง สังเคราะห์ แล้วสร้างไฟล์ผลลัพธ์ให้</p>
+    <div class="prompt"><span class="lbl">สรุปทั้งโฟลเดอร์</span>อ่านไฟล์ทุกอันใน folder โปรเจกต์นี้ (มี spec, meeting notes, test results, รายงานวิจัย)
+อ่านแล้วสร้าง executive summary 1 หน้า พร้อมส่ง stakeholder พรุ่งนี้</div>
+    <div class="prompt"><span class="lbl">เปลี่ยนฟอร์แมต</span>เอาข้อมูลจากไฟล์ Excel ผลทดสอบ มาทำเป็นสไลด์สรุป 5 หน้า
+ไฮไลต์เฉพาะประเด็นที่ผู้บริหารต้องตัดสินใจ</div>
+    <div class="prompt"><span class="lbl">ร่างอีเมล</span>จากเอกสารทั้งหมดในโฟลเดอร์ ร่างอีเมลถึง stakeholder
+ขออนุมัติ go-live พร้อมสรุปความเสี่ยงที่ต้องรู้</div>
+    <p class="tip"><b>เคล็ดลับ:</b> งานที่ปกติใช้เวลาครึ่งวัน Cowork ทำได้ในไม่กี่นาที — โดยคุณไม่ต้องเปิดไฟล์เอง</p>
+  </div>
+
+  <div class="cta">
+    <h2>เริ่มเลยวันนี้ — ฟรี ไม่ต้องใช้บัตรเครดิต</h2>
+    <p>เข้าใช้งานที่ <a href="https://claude.ai">claude.ai</a></p>
+    <p style="margin-top:10px;font-size:14px">ลองง่าย ๆ 3 ขั้น: ① เอางานที่ทำอยู่มาถาม → ② ขอให้สร้าง diagram/dashboard → ③ ให้ Cowork อ่านโฟลเดอร์เอกสารแล้วสรุป</p>
+  </div>
+
+  <p class="foot">จัดทำประกอบการนำเสนอ "ทำความรู้จัก Claude (เน้น Cowork)" · มิถุนายน 2026</p>
+</div>
+</body>
+</html>
